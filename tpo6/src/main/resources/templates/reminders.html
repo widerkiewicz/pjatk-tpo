@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,9 +36,7 @@
         .reminder-item:last-child {
             border-bottom: none;
         }
-        .reminder-item.completed {
-            opacity: 0.6;
-        }
+
         .reminder-item.completed .reminder-content h3,
         .reminder-item.completed .reminder-content p {
             /*text-decoration: line-through;*/
@@ -94,10 +92,12 @@
         button.delete {
             background-color: #b54747;
             color: #ebebeb;
+
         }
         button.delete:hover {
             background-color: #993c3c;
         }
+
         button.edit {
             background-color: #4754b5;
             color: #ebebeb;
@@ -105,12 +105,14 @@
         button.edit:hover {
             background-color: #3c4599;
         }
-        button.save {
+        button.save-btn {
             background-color: #4f8a55;
             color: #ebebeb;
             text-align: center;
+            position: relative;
+            top: 1px;
         }
-        button.save:hover {
+        button.save-btn:hover {
             background-color: #39633d;
         }
         .cancel-btn {
@@ -123,11 +125,41 @@
             background-color: #993c3c;
         }
         .add-reminder-form {
+            display: none;
             background-color: #353535;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.25);
             margin-bottom: 20px;
+            margin-top: 20px;
+        }
+        .add-form-toggle {
+            display: block;
+            margin-bottom: 20px;
+        }
+        .add-form-toggle.hidden {
+            display: none;
+        }
+        .add-reminder-form {
+            display: none;
+            margin-bottom: 20px;
+        }
+        .add-reminder-form.visible {
+            display: block;
+        }
+        .form-actions {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            justify-content: space-between;
+        }
+        .form-actions .save-btn,
+        .form-actions .cancel-btn {
+            flex: 0 0 48%;
+            max-width: 48%;
+            padding: 12px 0;
+            text-align: center;
+            font-size: 16px;
         }
         ::placeholder {
             color: #6c6c6c;
@@ -137,6 +169,12 @@
         }
         .form-group {
             margin-bottom: 15px;
+        }
+        .add-reminder-form input[type="text"] {
+            font-size: 14px;
+        }
+        .add-reminder-form textarea {
+            font-size: 14px;
         }
         label {
             display: block;
@@ -166,51 +204,67 @@
         input[type="datetime-local"] {
             padding: 7px;
         }
-        .submit-btn {
-            background-color: #4f8a55;
+        .create-btn {
+            background-color: #4754b5;
             color: #ebebeb;
             padding: 10px 15px;
             width: 100%;
             font-size: 16px;
         }
-        .submit-btn:hover {
-            background-color: #39633d;
+        .create-btn:hover {
+            background-color: #3c4599;
         }
-        .edit-form input,
-        .edit-form textarea,
-        .edit-form input[type="datetime-local"] {
+
+        .disabled {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .edit-inputs input,
+        .edit-inputs textarea,
+        .edit-inputs input[type="datetime-local"] {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ddd;
+            border: 1px solid #232323;
             border-radius: 4px;
             box-sizing: border-box;
             font-family: inherit;
+            font-size: 14px;
             margin-bottom: 12px;
+            gap: 5px;
         }
 
         .edit-actions {
             display: flex;
             gap: 10px;
-            margin-top: 10px;
+            justify-content: flex-end;
         }
+
     </style>
 </head>
 <body>
+
 <div class="header">
     <h1>Reminders</h1>
 </div>
 
+<!-- Create new reminder button -->
+<form th:action="@{/reminder/add}" method="post"
+      class="add-form-toggle"
+      th:classappend="${editingId != null} ? 'disabled' : (${showForm} ? 'hidden' : '')">
+    <button type="submit" class="create-btn">+ Add new Reminder</button>
+</form>
+
 <!-- Add Reminder Form -->
-<div class="add-reminder-form">
+<div class="add-reminder-form"
+     th:classappend="${showForm} ? 'visible' : ''">
     <form th:action="@{/reminder}" method="post">
-        <h2>Add a new Reminder</h2>
+        <h2>New Reminder</h2>
 
         <!-- Name form -->
         <div class="form-group">
             <label for="name">Name:</label>
-            <input type="text" id="name" name="Name" placeholder="Enter Name" required
-                   oninvalid="this.setCustomValidity('Name is required')"
-                   oninput="this.setCustomValidity('')"/>
+            <input type="text" id="name" name="Name" required placeholder="Enter name">
         </div>
 
         <!-- Description form -->
@@ -221,11 +275,20 @@
 
         <!-- Date form -->
         <div class="form-group">
-            <label for="date">Date and time:</label>
-            <input type="datetime-local" id="date" name="Date" required class="datetime-input"
-                   th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd') + 'T' + #temporals.format(#temporals.createNow(), 'HH:mm')}">
+            <label for="date">Date and Time:</label>
+            <input type="datetime-local" id="date" name="Date"
+                   th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd') + 'T' + #temporals.format(#temporals.createNow(), 'HH:mm')}"
+                   required>
         </div>
-        <button type="submit" class="submit-btn">Add Reminder</button>
+
+
+        <div class="form-actions">
+            <!-- Save button -->
+            <button type="submit" class="save-btn">Create</button>
+
+            <!-- Cancel button -->
+            <a th:href="@{/reminder}" class="cancel-btn">Cancel</a>
+        </div>
     </form>
 </div>
 
@@ -236,11 +299,14 @@
          th:classappend="${reminder.completed} ? 'completed' : ''">
 
         <!-- Checkbox -->
+        <div th:if="${editingId != reminder.id}">
         <form class="checkbox-form" th:action="@{/reminder/toggle/{id}(id=${reminder.id})}" method="post">
             <input type="checkbox"
                    th:checked="${reminder.completed}"
-                   onChange="this.form.submit()">
+                   onChange="this.form.submit()"
+                   th:classappend="${editingId != null} ? 'disabled' : (${showForm} ? 'disabled' : '')">
         </form>
+        </div>
 
         <!-- Display View -->
         <div class="reminder-content" th:unless="${editingId == reminder.id}">
@@ -252,23 +318,32 @@
         </div>
 
         <!-- Edit Form -->
-        <div th:if="${editingId == reminder.id}" style="flex-grow: 1; margin-left: 15px;">
+        <div th:if="${editingId == reminder.id}" style="flex-grow: 1; margin-left: 15px;" class="edit-form">
             <form th:action="@{/reminder/{id}(id=${reminder.id})}" th:method="put">
                 <input type="hidden" name="_method" value="put">
 
+                <div class="edit-inputs">
                 <!-- Name edit form -->
-                <input type="text" th:name="Name" th:value="${reminder.name}" required>
+                    <div>
+                    <input type="text" th:name="Name" th:value="${reminder.name}" required>
+                    </div>
 
-                <!-- Description edit form -->
-                <textarea th:name="Description" th:text="${reminder.description}"></textarea>
+                    <!-- Description edit form -->
+                    <div>
+                    <textarea th:name="Description" th:text="${reminder.description}"></textarea>
+                    </div>
 
-                <!-- Date edit form -->
-                <input type="datetime-local" th:name="Date"
-                       th:value="${#temporals.format(reminder.date, 'yyyy-MM-dd') + 'T' + #temporals.format(reminder.date, 'HH:mm')}" required>
+                    <!-- Date edit form -->
+                    <div>
+                    <input type="datetime-local" th:name="Date"
+                           th:value="${#temporals.format(reminder.date, 'yyyy-MM-dd') + 'T' + #temporals.format(reminder.date, 'HH:mm')}" required>
+                    </div>
+                </div>
+
                 <div class="edit-actions">
 
                     <!-- Submit button -->
-                    <button type="submit" class="save">Save</button>
+                    <button type="submit" class="save-btn">Save</button>
 
                     <!-- Cancel button -->
                     <a th:href="@{/reminder}" class="cancel-btn">Cancel</a>
@@ -276,17 +351,19 @@
             </form>
         </div>
 
-        <div class="reminder-actions" th:unless="${editingId == reminder.id}">
+        <div class="reminder-actions" th:unless="${editingId == reminder.id}" th:classappend="${editingId != null} ? 'disabled' : (${showForm} ? 'disabled' : '')">
 
             <!-- Edit Button -->
             <form th:action="@{/reminder/edit/{id}(id=${reminder.id})}" method="post">
-                <button type="submit" class="edit">Edit</button>
+                <button type="submit" class="edit"
+                        th:disabled="${editingId != null} ? true : ${showForm}">Edit</button>
             </form>
 
             <!-- Delete Button -->
             <form th:action="@{/reminder/{id}(id=${reminder.id})}" th:method="delete">
                 <input type="hidden" name="_method" value="delete">
-                <button type="submit" class="delete">Delete</button>
+                <button type="submit" class="delete"
+                        th:disabled="${editingId != null} ? true : ${showForm}">Delete</button>
             </form>
         </div>
     </div>

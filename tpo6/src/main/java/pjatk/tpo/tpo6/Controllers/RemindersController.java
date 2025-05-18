@@ -30,6 +30,7 @@ public class RemindersController {
     public String getAllReminders(Model model) {
         model.addAttribute("reminders", remindersService.getReminders());
         model.addAttribute("editingId", null);
+        model.addAttribute("showForm", false);
         return "reminders";
     }
 
@@ -37,6 +38,14 @@ public class RemindersController {
     @GetMapping("/completed")
     public String getCompleted(Model model) {
         model.addAttribute("reminders", remindersService.getCompletedReminders());
+        return "reminders";
+    }
+
+    //Show add-reminder form
+    @PostMapping("/add")
+    public String showAddForm(Model model) {
+        model.addAttribute("reminders", remindersService.getReminders());
+        model.addAttribute("showForm", true);
         return "reminders";
     }
 
