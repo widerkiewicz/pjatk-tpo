@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reminders App</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #232323;
+            color: #dedede;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .reminder-list {
+            background-color: #353535;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+            overflow: hidden;
+        }
+        .reminder-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #353535;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .reminder-item:last-child {
+            border-bottom: none;
+        }
+        .reminder-item.completed {
+            opacity: 0.6;
+        }
+        .reminder-item.completed .reminder-content h3,
+        .reminder-item.completed .reminder-content p {
+            /*text-decoration: line-through;*/
+            color: #777;
+        }
+        .reminder-content {
+            flex-grow: 1;
+            margin-left: 15px;
+        }
+        .reminder-content h3 {
+            margin: 0 0 5px 0;
+            color: #dedede;
+        }
+        .reminder-content p {
+            margin: 0 0 5px 0;
+            color: #999999;
+            font-size: 14px;
+        }
+        .reminder-date {
+            font-size: 12px;
+            color: #777777;
+        }
+        .past-due {
+            color: #cf5151;
+            font-weight: bold;
+        }
+        .reminder-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .checkbox-form {
+            margin: 0;
+        }
+        .checkbox-form input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            background-color: #2b2b2b;
+        }
+        form {
+            margin: 0;
+        }
+        button, .cancel-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        button.delete {
+            background-color: #b54747;
+            color: #ebebeb;
+        }
+        button.delete:hover {
+            background-color: #993c3c;
+        }
+        button.edit {
+            background-color: #4754b5;
+            color: #ebebeb;
+        }
+        button.edit:hover {
+            background-color: #3c4599;
+        }
+        button.save {
+            background-color: #4f8a55;
+            color: #ebebeb;
+            text-align: center;
+        }
+        button.save:hover {
+            background-color: #39633d;
+        }
+        .cancel-btn {
+            background-color: #b54747;
+            color: #ebebeb;
+            position: relative;
+            top: 1px;
+        }
+        .cancel-btn:hover {
+            background-color: #993c3c;
+        }
+        .add-reminder-form {
+            background-color: #353535;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+            margin-bottom: 20px;
+        }
+        ::placeholder {
+            color: #6c6c6c;
+        }
+        .datetime-input {
+            color: #dedede;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #999999;
+        }
+        input, textarea {
+            outline: none;
+            width: 100%;
+            padding: 10px;
+            background-color: #2b2b2b;
+            border: 1px solid #232323;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: inherit;
+            color: #dedede;
+            resize: none;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #3f81ef;
+            box-shadow: 0 0 0 2px rgba(20, 80, 175, 0.2);
+        }
+
+
+        input[type="datetime-local"] {
+            padding: 7px;
+        }
+        .submit-btn {
+            background-color: #4f8a55;
+            color: #ebebeb;
+            padding: 10px 15px;
+            width: 100%;
+            font-size: 16px;
+        }
+        .submit-btn:hover {
+            background-color: #39633d;
+        }
+        .edit-form input,
+        .edit-form textarea,
+        .edit-form input[type="datetime-local"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: inherit;
+            margin-bottom: 12px;
+        }
+
+        .edit-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Reminders</h1>
+</div>
+
+<!-- Add Reminder Form -->
+<div class="add-reminder-form">
+    <form th:action="@{/reminder}" method="post">
+        <h2>Add a new Reminder</h2>
+
+        <!-- Name form -->
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="Name" placeholder="Enter Name" required
+                   oninvalid="this.setCustomValidity('Name is required')"
+                   oninput="this.setCustomValidity('')"/>
+        </div>
+
+        <!-- Description form -->
+        <div class="form-group">
+            <label for="description">Description:</label>
+            <textarea id="description" name="Description" placeholder="Enter description (optional)"></textarea>
+        </div>
+
+        <!-- Date form -->
+        <div class="form-group">
+            <label for="date">Date and time:</label>
+            <input type="datetime-local" id="date" name="Date" required class="datetime-input"
+                   th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd') + 'T' + #temporals.format(#temporals.createNow(), 'HH:mm')}">
+        </div>
+        <button type="submit" class="submit-btn">Add Reminder</button>
+    </form>
+</div>
+
+<!-- Reminders List -->
+<div class="reminder-list">
+    <div th:each="reminder : ${reminders}"
+         class="reminder-item"
+         th:classappend="${reminder.completed} ? 'completed' : ''">
+
+        <!-- Checkbox -->
+        <form class="checkbox-form" th:action="@{/reminder/toggle/{id}(id=${reminder.id})}" method="post">
+            <input type="checkbox"
+                   th:checked="${reminder.completed}"
+                   onChange="this.form.submit()">
+        </form>
+
+        <!-- Display View -->
+        <div class="reminder-content" th:unless="${editingId == reminder.id}">
+            <h3 th:text="${reminder.name}"></h3>
+            <p th:text="${reminder.description}"></p>
+            <small class="reminder-date"
+                   th:classappend="${reminder.pastDue} ? 'past-due' : ''"
+                   th:text="${#temporals.format(reminder.date, 'dd MMMM yyyy HH:mm ')}"></small>
+        </div>
+
+        <!-- Edit Form -->
+        <div th:if="${editingId == reminder.id}" style="flex-grow: 1; margin-left: 15px;">
+            <form th:action="@{/reminder/{id}(id=${reminder.id})}" th:method="put">
+                <input type="hidden" name="_method" value="put">
+
+                <!-- Name edit form -->
+                <input type="text" th:name="Name" th:value="${reminder.name}" required>
+
+                <!-- Description edit form -->
+                <textarea th:name="Description" th:text="${reminder.description}"></textarea>
+
+                <!-- Date edit form -->
+                <input type="datetime-local" th:name="Date"
+                       th:value="${#temporals.format(reminder.date, 'yyyy-MM-dd') + 'T' + #temporals.format(reminder.date, 'HH:mm')}" required>
+                <div class="edit-actions">
+
+                    <!-- Submit button -->
+                    <button type="submit" class="save">Save</button>
+
+                    <!-- Cancel button -->
+                    <a th:href="@{/reminder}" class="cancel-btn">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="reminder-actions" th:unless="${editingId == reminder.id}">
+
+            <!-- Edit Button -->
+            <form th:action="@{/reminder/edit/{id}(id=${reminder.id})}" method="post">
+                <button type="submit" class="edit">Edit</button>
+            </form>
+
+            <!-- Delete Button -->
+            <form th:action="@{/reminder/{id}(id=${reminder.id})}" th:method="delete">
+                <input type="hidden" name="_method" value="delete">
+                <button type="submit" class="delete">Delete</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(reminders)}" class="reminder-item" style="justify-content: center;">
+        No reminders yet
+    </div>
+</div>
+</body>
+</html>
