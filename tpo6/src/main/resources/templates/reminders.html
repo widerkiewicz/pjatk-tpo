@@ -37,11 +37,16 @@
             border-bottom: none;
         }
 
-        .reminder-item.completed .reminder-content h3,
         .reminder-item.completed .reminder-content p {
-            /*text-decoration: line-through;*/
+
             color: #777;
         }
+
+        .reminder-item.completed .reminder-content h3 {
+            text-decoration: line-through;
+            color: #777;
+        }
+
         .reminder-content {
             flex-grow: 1;
             margin-left: 15px;
@@ -71,10 +76,50 @@
             margin: 0;
         }
         .checkbox-form input[type="checkbox"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            top: 3px;
             width: 20px;
             height: 20px;
             cursor: pointer;
             background-color: #2b2b2b;
+            border: 2px solid #4754b5;
+            border-radius: 4px;
+            position: relative;
+            transition: all 0.2s ease;
+            margin: 0;
+        }
+
+        .checkbox-form input[type="checkbox"]:checked {
+            background-color: #4754b5;
+            border-color: #4754b5;
+        }
+
+        .checkbox-form input[type="checkbox"]:hover {
+            border-color: #5a68d4;
+        }
+
+        .checkbox-form input[type="checkbox"]:checked:hover {
+            background-color: #5a68d4;
+            border-color: #5a68d4;
+        }
+
+        .checkbox-form input[type="checkbox"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .checkbox-form input[type="checkbox"]:checked::after {
+            content: "";
+            position: absolute;
+            left: 6px;
+            top: 2px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
         }
         form {
             margin: 0;
@@ -252,7 +297,7 @@
 <form th:action="@{/reminder/add}" method="post"
       class="add-form-toggle"
       th:classappend="${editingId != null} ? 'disabled' : (${showForm} ? 'hidden' : '')">
-    <button type="submit" class="create-btn">+ Add new Reminder</button>
+    <button type="submit" class="create-btn">+ Add a new Reminder</button>
 </form>
 
 <!-- Add Reminder Form -->
